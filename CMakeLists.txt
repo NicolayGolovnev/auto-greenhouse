@@ -10,4 +10,5 @@ add_executable(
         system/aero/AeroSystem.cpp system/aero/AeroSystem.h
         sensor/aero/AeroSensor.cpp sensor/aero/AeroSensor.h
         sensor/water/WaterSensor.cpp sensor/water/WaterSensor.h
+        utils/Channel.h utils/Semaphore.h
 )
