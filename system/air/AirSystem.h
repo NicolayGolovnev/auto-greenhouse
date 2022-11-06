@@ -34,15 +34,15 @@ public:
 
             // Обработка данных с датчика
             if (dataFromSensor > OVERHEAT) {
-                isWorking = true;
+                this->isWorking = true;
                 printf("[OVERHEAT]\tTemperature = %d, system starts!\n", dataFromSensor);
             }
             else if (dataFromSensor < OVERCOOLING) {
-                isWorking = false;
+                this->isWorking = false;
                 printf("[OVERCOOLING]\tTemperature = %d, system shutdown!\n", dataFromSensor);
             }
             else {
-                if (isWorking)
+                if (this->isWorking)
                     printf("[NORMAL]\tTemperature = %d, system on!\n", dataFromSensor);
                 else
                     printf("[NORMAL]\tTemperature = %d, system off!\n", dataFromSensor);
@@ -55,11 +55,44 @@ public:
             }
         }
     }
-
-    void runLikeThread() {
-
-    }
 };
 
+DWORD WINAPI AirSystemThread(LPVOID pVoid) {
+    Semaphore *semaphore = new Semaphore("AirSensor", false);
+    Channel *channel = new Channel("AirSensor");
+
+    Semaphore *informSystem = new Semaphore("AirSystemInformSystem", false);
+    Semaphore *answerToInformSystem = new Semaphore("AirSystemAnswerInformSystem", false);
+    bool isWorking = false;
+
+    while (true) {
+        semaphore->V();
+        int dataFromSensor = channel->get();
+
+        // Обработка данных с датчика
+        if (dataFromSensor > OVERHEAT) {
+            isWorking = true;
+            printf("[OVERHEAT]\tTemperature = %d, system starts!\n", dataFromSensor);
+        }
+        else if (dataFromSensor < OVERCOOLING) {
+            isWorking = false;
+            printf("[OVERCOOLING]\tTemperature = %d, system shutdown!\n", dataFromSensor);
+        }
+        else {
+            if (isWorking)
+                printf("[NORMAL]\tTemperature = %d, system on!\n", dataFromSensor);
+            else
+                printf("[NORMAL]\tTemperature = %d, system off!\n", dataFromSensor);
+        }
+
+        // Если есть запрос на включение системы из вне - включаем и сообщаем об этом
+        if (informSystem->P(500) == WAIT_OBJECT_0) {
+            printf("\t[BY ORDER OF INF_SYS]\tSystem starts!\n");
+            answerToInformSystem->V();
+        }
+    }
+
+    return 0;
+}
 
 #endif //AUTO_GREENHOUSE_AIRSYSTEM_H

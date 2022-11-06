@@ -45,11 +45,32 @@ public:
             }
         }
     }
-
-    void runLikeThread() {
-
-    }
 };
 
+DWORD WINAPI AirSensorThread(LPVOID pVoid) {
+    srand(time(nullptr));
+
+    Semaphore *semaphore = new Semaphore("AirSensor", false);
+    Channel *channel = new Channel("AirSensor");
+
+    Semaphore *informSystem = new Semaphore("AirSensorInformSystem", false);
+    Channel *informChannel = new Channel("AirSensorInformSystem");
+
+    while (true) {
+        semaphore->P();
+        int temperature = (rand() + 11) % 50;
+        channel->put(temperature);
+        printf("[TO SYSTEM]\t Temperature is %d\n", temperature);
+
+        // Если к нам обратилась информационная система для получения данных
+        if (informSystem->P(500) == WAIT_OBJECT_0) {
+            int temperatureForInform = (rand() + 11) % 50;
+            informChannel->put(temperatureForInform);
+            printf("[TO INF_SYS]\t Temperature is %d\n", temperatureForInform);
+        }
+    }
+
+    return 0;
+}
 
 #endif //AUTO_GREENHOUSE_AIRSENSOR_H

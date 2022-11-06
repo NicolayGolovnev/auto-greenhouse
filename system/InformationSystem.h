@@ -64,11 +64,46 @@ public:
                 printf("\tInitiation watering system is successed!\n");
         }
     }
-
-    void runLikeThread() {
-
-    }
 };
 
+DWORD WINAPI InformationSystemThread(LPVOID pVoid) {
+    Semaphore *airSemaphore = new Semaphore("AirSensorInformSystem", false);
+    Channel *airChannel = new Channel("AirSensorInformSystem");
+    Semaphore *airSystem = new Semaphore("AirSystemInformSystem", false);
+    Semaphore *answerAirSystem = new Semaphore("AirSystemAnswerInformSystem", false);
+
+    Semaphore *waterSemaphore = new Semaphore("WaterSensorInformSystem", false);
+    Channel *waterChannel = new Channel("WaterSensorInformSystem");
+    Semaphore *waterSystem = new Semaphore("WaterSystemInformSystem", false);
+    Semaphore *answerWaterSystem = new Semaphore("WaterSystemAnswerInformSystem", false);
+
+    int temperature = 0, humidity = 0;
+
+    while (true) {
+        printf("\nTemperature: ");
+        if (temperature == 0) printf("indefinite\n"); else printf("%d\n", temperature);
+        printf("Humidity: ");
+        if (humidity == 0) printf("indefinite\n"); else printf("%d\n", humidity);
+
+        airSemaphore->V();
+        temperature = airChannel->get();
+        waterSemaphore->V();
+        humidity = waterChannel->get();
+
+        // если данные получили и оказались, что они критические - запускаем системы
+        if (temperature > HIGH_TEMPERATURE)
+            waterSystem->V();
+        if (humidity > HIGH_HUMIDITY)
+            airSystem->V();
+
+        // смотрим, что к нам могут прийти ответы от этих систем
+        if (answerAirSystem->P(500) == WAIT_OBJECT_0)
+            printf("\tInitiation ventilation system is successed!\n");
+        if (answerWaterSystem->P(500) == WAIT_OBJECT_0)
+            printf("\tInitiation watering system is successed!\n");
+    }
+
+    return 0;
+}
 
 #endif //AUTO_GREENHOUSE_INFORMATIONSYSTEM_H
