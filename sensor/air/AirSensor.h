@@ -13,9 +13,9 @@ private:
     Semaphore *semaphore, *informSystem;
     Channel *channel, *informChannel;
 
-    /** Генерация значения температуры от 11 до 40 */
+    /** Генерация значения температуры от 11 до 50 */
     long generateValue() {
-        return (rand() + 11) % 40;
+        return (rand() + 11) % 50;
     }
 
 public:
@@ -28,7 +28,7 @@ public:
         this->informSystem = new Semaphore("AirSensorInformSystem", false);
         this->informChannel = new Channel("AirSensorInformSystem");
     }
-    ~AirSensor() { }
+    ~AirSensor() = default;
 
     void run() {
         while (true) {

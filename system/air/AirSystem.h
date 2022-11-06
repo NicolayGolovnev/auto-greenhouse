@@ -8,8 +8,8 @@
 #include "Semaphore.h"
 #include "Channel.h"
 
-#define OVERHEAT 33
-#define OVERCOOLING 18
+#define OVERHEAT 40
+#define OVERCOOLING 22
 
 class AirSystem {
 private:
@@ -25,7 +25,7 @@ public:
         this->informSystem = new Semaphore("AirSystemInformSystem", false);
         this->answerToInformSystem = new Semaphore("AirSystemAnswerInformSystem", false);
     }
-    ~AirSystem() { }
+    ~AirSystem() = default;
 
     void run() {
         while (true) {
@@ -50,7 +50,7 @@ public:
 
             // Если есть запрос на включение системы из вне - включаем и сообщаем об этом
             if (this->informSystem->P(500) == WAIT_OBJECT_0) {
-                printf("\t[BY ORDER OF INF_SYS]System starts!\n");
+                printf("\t[BY ORDER OF INF_SYS]\tSystem starts!\n");
                 this->answerToInformSystem->V();
             }
         }

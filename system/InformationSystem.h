@@ -53,9 +53,9 @@ public:
 
             // если данные получили и оказались, что они критические - запускаем системы
             if (this->temperature > HIGH_TEMPERATURE)
-                airSystem->V();
-            if (this->humidity > HIGH_HUMIDITY)
                 waterSystem->V();
+            if (this->humidity > HIGH_HUMIDITY)
+                airSystem->V();
 
             // смотрим, что к нам могут прийти ответы от этих систем
             if (this->answerAirSystem->P(500) == WAIT_OBJECT_0)
