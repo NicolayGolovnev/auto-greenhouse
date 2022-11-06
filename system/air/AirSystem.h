@@ -23,7 +23,7 @@ public:
         this->channel = new Channel("AirSensor");
 
         this->informSystem = new Semaphore("AirSystemInformSystem", false);
-        this->answerToInformSystem = new Semaphore("AirSystemInformSystem", false);
+        this->answerToInformSystem = new Semaphore("AirSystemAnswerInformSystem", false);
     }
     ~AirSystem() { }
 
