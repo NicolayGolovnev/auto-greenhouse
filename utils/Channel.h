@@ -17,8 +17,8 @@ public:
         std::string buf = "CH_" + std::string(name);
         const char *newName = buf.c_str();
 
-        this->free = new Semaphore(newName, 1);
-        this->empty = new Semaphore(newName, 0);
+        this->free = new Semaphore(newName, true);
+        this->empty = new Semaphore(newName, false);
 
         this->fileMem = OpenFileMappingA(
                 FILE_MAP_ALL_ACCESS,
@@ -44,7 +44,7 @@ public:
                     );
         else printf("error: FILE_MAP!\n");
     }
-    ~Channel() { }
+    ~Channel() = default;
 
 
     void put(int data) {

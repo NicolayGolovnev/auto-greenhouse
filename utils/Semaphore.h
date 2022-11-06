@@ -32,10 +32,10 @@ public:
         if (this->sem == nullptr)
             this->sem = CreateSemaphoreA(nullptr, startState, 1, (LPCSTR) newName);
     }
-    ~Semaphore() { }
+    ~Semaphore() = default;
 
     /** Ожидаем открытия семафора для выполнения действий */
-    void P(long milliseconds = INFINITE) { WaitForSingleObject(this->sem, milliseconds); }
+    long P(long milliseconds = INFINITE) { return WaitForSingleObject(this->sem, milliseconds); }
 
     /** Освобождаем семафор для лругих потоков */
     void V() { ReleaseSemaphore(this->sem, 1, nullptr); }
