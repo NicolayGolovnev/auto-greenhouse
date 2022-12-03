@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.15)
 project(auto_greenhouse)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -13,4 +13,4 @@ add_executable(
         sensor/air/AirSensor.h
         sensor/water/WaterSensor.h
         utils/Channel.h utils/Semaphore.h
-)
+        utils/Consumer.h utils/Producer.h)

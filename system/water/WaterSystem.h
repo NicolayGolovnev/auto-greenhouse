@@ -5,48 +5,49 @@
 #ifndef AUTO_GREENHOUSE_WATERSYSTEM_H
 #define AUTO_GREENHOUSE_WATERSYSTEM_H
 
-
+#include "Consumer.h"
 #include "Semaphore.h"
 #include "Channel.h"
 
 #define HIGH_HUMIDITY 90
 #define LOW_HUMIDITY 65
+#define CONSUME_WATER_SYSTEM_TIMES 2
 
 class WaterSystem {
 private:
     Semaphore *semaphore, *informSystem, *answerToInformSystem;
-    Channel *channel;
+    Consumer *consumer;
     bool isWorking = false;
 
 public:
     WaterSystem() {
         this->semaphore = new Semaphore("WaterSensor", false);
-        this->channel = new Channel("WaterSensor");
-
         this->informSystem = new Semaphore("WaterSystemInformSystem", false);
         this->answerToInformSystem = new Semaphore("WaterSystemAnswerInformSystem", false);
+
+        this->consumer = new Consumer("WaterSensor", CONSUME_WATER_SYSTEM_TIMES);
     }
     ~WaterSystem() = default;
 
     void run() {
         while (true) {
             this->semaphore->V();
-            int dataFromSensor = this->channel->get();
+            int averageDataFromSensor = this->consumer->consume();
 
             // Обработка данных с датчика
-            if (dataFromSensor < LOW_HUMIDITY) {
+            if (averageDataFromSensor < LOW_HUMIDITY) {
                 this->isWorking = true;
-                printf("[LOW]\t\tHumidity = %d, system starts!\n", dataFromSensor);
+                printf("[LOW]\t\tHumidity = %d, system starts!\n", averageDataFromSensor);
             }
-            else if (dataFromSensor > HIGH_HUMIDITY) {
+            else if (averageDataFromSensor > HIGH_HUMIDITY) {
                 this->isWorking = false;
-                printf("[HIGH]\t\tHumidity = %d, system shutdown!\n", dataFromSensor);
+                printf("[HIGH]\t\tHumidity = %d, system shutdown!\n", averageDataFromSensor);
             }
             else {
                 if (this->isWorking)
-                    printf("[NORMAL]\tHumidity = %d, system on!\n", dataFromSensor);
+                    printf("[NORMAL]\tHumidity = %d, system on!\n", averageDataFromSensor);
                 else
-                    printf("[NORMAL]\tHumidity = %d, system off!\n", dataFromSensor);
+                    printf("[NORMAL]\tHumidity = %d, system off!\n", averageDataFromSensor);
             }
 
             // Если есть запрос на включение системы из вне - включаем и сообщаем об этом

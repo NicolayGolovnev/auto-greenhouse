@@ -5,51 +5,53 @@
 #ifndef AUTO_GREENHOUSE_INFORMATIONSYSTEM_H
 #define AUTO_GREENHOUSE_INFORMATIONSYSTEM_H
 
-
+#include "Consumer.h"
 #include "Semaphore.h"
 #include "Channel.h"
 
 #define HIGH_TEMPERATURE 31
 #define HIGH_HUMIDITY 66
+#define CONSUME_AIR_TIMES 2
+#define CONSUME_WATER_TIMES 2
 
 class InformationSystem {
 private:
     /** Система проветривания */
     Semaphore *airSemaphore, *airSystem, *answerAirSystem;
-    Channel *airChannel;
+    Consumer *airConsumer;
 
     /** Система полива */
     Semaphore *waterSemaphore, *waterSystem, *answerWaterSystem;
-    Channel *waterChannel;
+    Consumer *waterConsumer;
 
     int temperature = 0, humidity = 0;
 
 public:
     InformationSystem() {
         this->airSemaphore = new Semaphore("AirSensorInformSystem", false);
-        this->airChannel = new Channel("AirSensorInformSystem");
         this->airSystem = new Semaphore("AirSystemInformSystem", false);
         this->answerAirSystem = new Semaphore("AirSystemAnswerInformSystem", false);
+        this->airConsumer = new Consumer("AirSensor", CONSUME_AIR_TIMES);
 
         this->waterSemaphore = new Semaphore("WaterSensorInformSystem", false);
-        this->waterChannel = new Channel("WaterSensorInformSystem");
         this->waterSystem = new Semaphore("WaterSystemInformSystem", false);
         this->answerWaterSystem = new Semaphore("WaterSystemAnswerInformSystem", false);
+        this->waterConsumer = new Consumer("WaterSensor", CONSUME_WATER_TIMES);
     }
     ~InformationSystem() = default;
 
     void run() {
         printf("Information System for greenhouse\n\n");
         while (true) {
-            printf("\nTemperature: ");
+            printf("\nAverage temperature: ");
             if (temperature == 0) printf("indefinite\n"); else printf("%d\n", temperature);
-            printf("Humidity: ");
+            printf("Average humidity: ");
             if (humidity == 0) printf("indefinite\n"); else printf("%d\n", humidity);
 
             airSemaphore->V();
-            this->temperature = airChannel->get();
+            this->temperature = airConsumer->consume();
             waterSemaphore->V();
-            this->humidity = waterChannel->get();
+            this->humidity = waterConsumer->consume();
 
             // если данные получили и оказались, что они критические - запускаем системы
             if (this->temperature > HIGH_TEMPERATURE)
