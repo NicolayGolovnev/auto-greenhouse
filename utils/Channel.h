@@ -14,16 +14,20 @@ private:
     void *buffer;
 public:
     Channel(const char *name) {
-        std::string buf = "CH_" + std::string(name);
-        const char *newName = buf.c_str();
+        std::string bufForFree = "CH_" + std::string(name) + "_FREE";
+        const char *newNameForFree = bufForFree.c_str();
+        this->free = new Semaphore(newNameForFree, true);
 
-        this->free = new Semaphore(newName, true);
-        this->empty = new Semaphore(newName, false);
+        std::string bufForEmpty = "CH_" + std::string(name) + "_EMPTY";
+        const char *newNameForEmpty = bufForEmpty.c_str();
+        this->empty = new Semaphore(newNameForEmpty, false);
 
+        std::string bufForFileMem = "FILEMEM_" + std::string(name);
+        const char *newNameForFileMem = bufForFileMem.c_str();
         this->fileMem = OpenFileMappingA(
                 FILE_MAP_ALL_ACCESS,
                 false,
-                (LPCSTR) newName
+                (LPCSTR) newNameForFileMem
                 );
         if (this->fileMem == nullptr)
             this->fileMem = CreateFileMappingA(
@@ -31,7 +35,7 @@ public:
                     nullptr,
                     PAGE_READWRITE,
                     0, 4096,
-                    (LPCSTR) newName
+                    (LPCSTR) newNameForFileMem
                     );
 
         if (this->fileMem != nullptr)

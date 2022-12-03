@@ -29,8 +29,10 @@ public:
                 true,
                 (LPCSTR) newName
                 );
-        if (this->sem == nullptr)
+        if (this->sem == nullptr){
             this->sem = CreateSemaphoreA(nullptr, startState, 1, (LPCSTR) newName);
+//            printf("Create semaphore %s\n", newName);
+        }
     }
     ~Semaphore() = default;
 
