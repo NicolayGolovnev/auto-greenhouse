@@ -5,18 +5,17 @@
 #ifndef AUTO_GREENHOUSE_AIRSYSTEM_H
 #define AUTO_GREENHOUSE_AIRSYSTEM_H
 
-#include "Consumer.h"
 #include "Semaphore.h"
 #include "Channel.h"
+#include "Reader.h"
 
 #define OVERHEAT 40
 #define OVERCOOLING 22
-#define CONSUME_AIR_SYSTEM_TIMES 2
 
 class AirSystem {
 private:
     Semaphore *semaphore, *informSystem, *answerToInformSystem;
-    Consumer *consumer;
+    Reader *reader;
     bool isWorking = false;
 
 public:
@@ -25,29 +24,29 @@ public:
         this->informSystem = new Semaphore("AirSystemInformSystem", false);
         this->answerToInformSystem = new Semaphore("AirSystemAnswerInformSystem", false);
 
-        this->consumer = new Consumer("AirSensor", CONSUME_AIR_SYSTEM_TIMES);
+        this->reader = new Reader("AirSensor");
     }
     ~AirSystem() = default;
 
     void run() {
         while (true) {
             this->semaphore->V();
-            int averageDataFromSensor = this->consumer->consume();
+            int valueFromSensor = this->reader->read();
 
             // Обработка данных с датчика
-            if (averageDataFromSensor > OVERHEAT) {
+            if (valueFromSensor > OVERHEAT) {
                 this->isWorking = true;
-                printf("[OVERHEAT]\tTemperature = %d, system starts!\n", averageDataFromSensor);
+                printf("[OVERHEAT]\tTemperature = %d, system starts!\n", valueFromSensor);
             }
-            else if (averageDataFromSensor < OVERCOOLING) {
+            else if (valueFromSensor < OVERCOOLING) {
                 this->isWorking = false;
-                printf("[OVERCOOLING]\tTemperature = %d, system shutdown!\n", averageDataFromSensor);
+                printf("[OVERCOOLING]\tTemperature = %d, system shutdown!\n", valueFromSensor);
             }
             else {
                 if (this->isWorking)
-                    printf("[NORMAL]\tTemperature = %d, system on!\n", averageDataFromSensor);
+                    printf("[NORMAL]\tTemperature = %d, system on!\n", valueFromSensor);
                 else
-                    printf("[NORMAL]\tTemperature = %d, system off!\n", averageDataFromSensor);
+                    printf("[NORMAL]\tTemperature = %d, system off!\n", valueFromSensor);
             }
 
             // Если есть запрос на включение системы из вне - включаем и сообщаем об этом

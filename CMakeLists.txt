@@ -13,4 +13,7 @@ add_executable(
         sensor/air/AirSensor.h
         sensor/water/WaterSensor.h
         utils/Channel.h utils/Semaphore.h
-        utils/Consumer.h utils/Producer.h)
+        utils/Consumer.h utils/Producer.h
+        utils/Reader.h utils/Writer.h
+        utils/RWLockUtils.h utils/FileMemMap.h
+)

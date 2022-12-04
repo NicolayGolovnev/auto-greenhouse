@@ -6,29 +6,14 @@
 #define AUTO_GREENHOUSE_AIRSENSOR_H
 
 #include <ctime>
-#include "Producer.h"
 #include "Semaphore.h"
 #include "Channel.h"
-
-#define PRODUCE_TEMPERATURE_COUNT 2
+#include "Writer.h"
 
 class AirSensor {
 private:
     Semaphore *semaphore, *informSystemSemaphore;
-    Producer *producer;
-
-    /** Генерация значения температуры от 11 до 50 */
-    static long generateValue() {
-        return (rand() + 11) % 50;
-    }
-
-    int *generateTemperatures() {
-        int *producedTemperature = new int[PRODUCE_TEMPERATURE_COUNT];
-        for (int i = 0; i < PRODUCE_TEMPERATURE_COUNT; i++)
-            producedTemperature[i] = generateValue();
-
-        return producedTemperature;
-    }
+    Writer *writer;
 
 public:
     AirSensor() {
@@ -37,31 +22,19 @@ public:
         this->semaphore = new Semaphore("AirSensor", false);
         this->informSystemSemaphore = new Semaphore("AirSensorInformSystem", false);
 
-        this->producer = new Producer("AirSensor", PRODUCE_TEMPERATURE_COUNT);
+        this->writer = new Writer("AirSensor");
     }
     ~AirSensor() = default;
 
     void run() {
         while (true) {
             this->semaphore->P();
-            int *temperatures = generateTemperatures();
-            int averageTemperature = 0;
-            for (int i = 0; i < PRODUCE_TEMPERATURE_COUNT; i++)
-                averageTemperature += temperatures[i];
-
-            this->producer->produce(temperatures);
-            printf("[TO SYSTEM]\t Average temperature is %d\n", averageTemperature / PRODUCE_TEMPERATURE_COUNT);
+            int value = this->writer->write();
+            printf("[TO SYSTEM]\t Temperature is %d\n", value);
 
             // Если к нам обратилась информационная система для получения данных
-            if (this->informSystemSemaphore->P(500) == WAIT_OBJECT_0) {
-                int *temperaturesForInform = generateTemperatures();
-                int averageTemperatureForInform = 0;
-                for (int i = 0; i < PRODUCE_TEMPERATURE_COUNT; i++)
-                    averageTemperatureForInform += temperaturesForInform[i];
-
-                this->producer->produce(temperaturesForInform);
-                printf("[TO INF_SYS]\t Average temperature is %d\n", averageTemperatureForInform / PRODUCE_TEMPERATURE_COUNT);
-            }
+            if (this->informSystemSemaphore->P(500) == WAIT_OBJECT_0)
+                printf("[TO INF_SYS]\t Temperature is %d\n", value);
         }
     }
 };
